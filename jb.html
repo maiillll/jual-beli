@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PreloveHub - Marketplace Barang Bekas Berkualitas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('marketplace')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-500 bg-clip-text text-transparent">PreloveHub</span>
+                    <span class="block text-[10px] text-slate-400 tracking-wider font-semibold uppercase">Lokal & Terpercaya</span>
+                </div>
+            </div>
+
+            <!-- Search Bar (Desktop) -->
+            <div class="hidden md:flex flex-1 max-w-md relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Cari barang preloved (cth: Kamera, Sepatu, Jaket)..." class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:bg-white focus:border-brand-500 transition-all">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="openAddProductModal()" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm transition-all transform active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Jual Barang</span>
+                </button>
+                <button onclick="openChatListModal()" class="relative p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition-all">
+                    <i class="fa-regular fa-comment-dots text-lg"></i>
+                    <span id="chatBadge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full hidden"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Search Bar -->
+        <div class="px-4 pb-3 md:hidden">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="mobileSearchInput" oninput="handleSearch()" placeholder="Cari barang preloved..." class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:bg-white focus:border-brand-500 transition-all">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <div class="bg-white border-b border-slate-200 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-8">
+            <button onclick="switchTab('marketplace')" id="tabMarketplace" class="py-3 border-b-2 border-brand-600 text-brand-600 font-semibold text-sm flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-store"></i> Marketplace Produk
+            </button>
+            <button onclick="switchTab('requests')" id="tabRequests" class="py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-hand-holding-heart"></i> Permintaan Barang (Wishlist)
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- SECTION 1: MARKETPLACE -->
+        <div id="sectionMarketplace" class="space-y-6">
+            <!-- Filter Kategori -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar" id="categoryFilters">
+                <button onclick="filterCategory('Semua')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-brand-600 text-white shadow-sm" data-category="Semua">Semua</button>
+                <button onclick="filterCategory('Elektronik')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100" data-category="Elektronik">Elektronik</button>
+                <button onclick="filterCategory('Fashion')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100" data-category="Fashion">Fashion</button>
+                <button onclick="filterCategory('Hobi')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100" data-category="Hobi">Hobi & Koleksi</button>
+                <button onclick="filterCategory('Rumah Tangga')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100" data-category="Rumah Tangga">Rumah Tangga</button>
+                <button onclick="filterCategory('Kendaraan')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100" data-category="Kendaraan">Kendaraan</button>
+            </div>
+
+            <!-- Grid Produk -->
+            <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <!-- Dinamis di-render via JavaScript -->
+            </div>
+
+            <!-- State Kosong Produk -->
+            <div id="emptyProductState" class="hidden text-center py-16">
+                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3 class="text-base font-semibold text-slate-700">Produk tidak ditemukan</h3>
+                <p class="text-sm text-slate-500 mt-1">Coba gunakan kata kunci lain atau ubah kategori filter.</p>
+            </div>
+        </div>
+
+        <!-- SECTION 2: PERMINTAAN BARANG (WISHLIST/REQUEST) -->
+        <div id="sectionRequests" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Pusat Permintaan Barang Preloved</h2>
+                    <p class="text-sm text-slate-500">Mencari barang bekas tertentu tapi belum ada yang jual? Buat permintaan di sini agar penjual tahu!</p>
+                </div>
+                <button onclick="openAddRequestModal()" class="bg-indigo-50 hover:bg-indigo-100 text-brand-600 border border-indigo-200 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bullhorn"></i> Buat Permintaan Baru
+                </button>
+            </div>
+
+            <!-- Grid Permintaan -->
+            <div id="requestGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dinamis di-render via JavaScript -->
+            </div>
+
+            <!-- State Kosong Permintaan -->
+            <div id="emptyRequestState" class="hidden text-center py-16">
+                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <h3 class="text-base font-semibold text-slate-700">Belum ada permintaan barang</h3>
+                <p class="text-sm text-slate-500 mt-1">Jadilah yang pertama membuat permintaan barang yang kamu cari.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-400">
+        <p>&copy; 2026 PreloveHub Indonesia. Platform Jual Beli Barang Preloved Lokal & Aman.</p>
+    </footer>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Modal Detail Produk & Status & Chat -->
+    <div id="productModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div class="relative">
+                <img id="modalImg" src="" alt="Detail Produk" class="w-full h-64 sm:h-80 object-cover bg-slate-100">
+                <button onclick="closeProductModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div id="modalStatusBadge" class="absolute bottom-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md"></div>
+            </div>
+            
+            <div class="p-6 space-y-4 flex-1">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <span id="modalCategory" class="inline-block px-2.5 py-0.5 rounded-md bg-brand-50 text-brand-700 text-xs font-semibold mb-1"></span>
+                        <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold text-slate-900"></h2>
+                    </div>
+                    <div class="text-right">
+                        <span id="modalPrice" class="text-xl sm:text-2xl font-black text-brand-600"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 py-3 border-y border-slate-100 text-sm text-slate-600">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 uppercase" id="modalSellerAvatar">P</div>
+                    <div>
+                        <p class="font-semibold text-slate-800" id="modalSellerName">Penjual</p>
+                        <p class="text-xs text-slate-400"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> <span id="modalLocation">Lokasi</span></p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Deskripsi Barang</h4>
+                    <p id="modalDesc" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></p>
+                </div>
+
+                <!-- Kontrol Penjual (Ubah Status Terjual/Tersedia) -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Kontrol Pemilik / Penjual</span>
+                        <span class="text-xs text-slate-500">Ubah status ketersediaan barang secara real-time.</span>
+                    </div>
+                    <button id="modalToggleStatusBtn" onclick="toggleProductStatus()" class="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all shadow-xs"></button>
+                </div>
+            </div>
+
+            <!-- Modal Footer Action -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button onclick="closeProductModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-200 transition-all">Tutup</button>
+                <button id="modalChatBtn" onclick="openChatFromModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-comments"></i> Nego / Chat Penjual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Produk Baru -->
+    <div id="addProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-800">Tambah Produk Preloved</h3>
+                <button onclick="closeAddProductModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="addProductForm" onsubmit="submitNewProduct(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Judul Barang</label>
+                    <input type="text" id="newTitle" required placeholder="Cth: Kamera Mirrorless Sony A6000 Mulus" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Harga (Rp)</label>
+                        <input type="number" id="newPrice" required placeholder="Cth: 3500000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Kategori</label>
+                        <select id="newCategory" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                            <option value="Elektronik">Elektronik</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Hobi">Hobi & Koleksi</option>
+                            <option value="Rumah Tangga">Rumah Tangga</option>
+                            <option value="Kendaraan">Kendaraan</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Link Foto Produk (URL)</label>
+                    <input type="url" id="newImage" required placeholder="https://images.unsplash.com/..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nama Penjual</label>
+                        <input type="text" id="newSeller" required placeholder="Cth: Budi Santoso" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Lokasi</label>
+                        <input type="text" id="newLocation" required placeholder="Cth: Jakarta Selatan" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Deskripsi Kondisi Barang</label>
+                    <textarea id="newDesc" rows="3" required placeholder="Jelaskan kondisi fisik, minus, kelengkapan..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500"></textarea>
+                </div>
+                <div class="pt-2 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeAddProductModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm">Simpan & Terbitkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Permintaan Barang -->
+    <div id="addRequestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-800">Buat Permintaan Barang (Wishlist)</h3>
+                <button onclick="closeAddRequestModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="addRequestForm" onsubmit="submitNewRequest(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Barang yang Dicari</label>
+                    <input type="text" id="reqTitle" required placeholder="Cth: Mencari Fujifilm X-T20 Budget 4 Juta" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Estimasi Budget (Rp)</label>
+                        <input type="number" id="reqBudget" required placeholder="Cth: 4000000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nama Pembuat</label>
+                        <input type="text" id="reqAuthor" required placeholder="Cth: Siska Melati" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Keterangan / Kriteria Detail</label>
+                    <textarea id="reqDesc" rows="3" required placeholder="Sebutkan spesifikasi atau kondisi minimal yang diinginkan..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-brand-500"></textarea>
+                </div>
+                <div class="pt-2 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeAddRequestModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm">Kirim Permintaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Jendela Chat & Nego Interaktif -->
+    <div id="chatModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Chat Header -->
+            <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center" id="chatHeaderAvatar">P</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm" id="chatHeaderName">Nama Penjual</h4>
+                        <p class="text-xs text-slate-400" id="chatHeaderProduct">Diskusi Produk</p>
+                    </div>
+                </div>
+                <button onclick="closeChatModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Chat Message Box -->
+            <div id="chatMessageContainer" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50">
+                <!-- Dinamis chat messages -->
+            </div>
+
+            <!-- Chat Input Area -->
+            <form id="chatForm" onsubmit="sendChatMessage(event)" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+                <input type="text" id="chatInputText" required placeholder="Tulis pesan atau penawaran harga..." class="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:bg-white focus:border-brand-500">
+                <button type="submit" class="w-10 h-10 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-sm shrink-0 transition-all">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification / Alert Toast -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastMessage">Berhasil!</span>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Data Dummy Awal Produk
+        let products = [
+            {
+                id: 1,
+                title: "Kamera Mirrorless Sony A6000 + Lensa Kit 16-50mm",
+                price: 4800000,
+                category: "Elektronik",
+                image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+                seller: "Rian Pratama",
+                location: "Jakarta Selatan",
+                status: "Tersedia",
+                desc: "Kondisi fisik 95% mulus pemakaian wajar. Sensor bersih bebas jamur. Fungsi normal 100%, autofocus cepat. Kelengkapan: Unit kamera, lensa kit, strap original, baterai, charger, dan tas."
+            },
+            {
+                id: 2,
+                title: "Nike Air Jordan 1 High OG Retro Original Preloved",
+                price: 1750000,
+                category: "Fashion",
+                image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=800&q=80",
+                seller: "Dimas Sneakerhead",
+                location: "Bandung",
+                status: "Tersedia",
+                desc: "Size 43 / US 9.5. Kondisi 90% terawat, sol masih tebal jarang dipakai jalan jauh. Box original lengkap dengan extra laces. Dijamin 100% original authentic."
+            },
+            {
+                id: 3,
+                title: "Gitar Akustik Elektrik Yamaha FX310",
+                price: 1100000,
+                category: "Hobi",
+                image: "https://images.unsplash.com/photo-1510915361894-db8b6010cb61?auto=format&fit=crop&w=800&q=80",
+                seller: "Andi Musisi",
+                location: "Surabaya",
+                status: "Sold Out",
+                desc: "Suara nyaring dan renyah. Preamp aktif normal. Ada sedikit lecet minor di bagian belakang bodi karena pemakaian, tidak mempengaruhi sound sama sekali."
+            },
+            {
+                id: 4,
+                title: "Coffee Maker Espresso Machine DeLonghi",
+                price: 2400000,
+                category: "Rumah Tangga",
+                image: "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=800&q=80",
+                seller: "Siti Aminah",
+                location: "Yogyakarta",
+                status: "Tersedia",
+                desc: "Mesin kopi espresso rumahan andal. Tekanan 15 bar berfungsi sempurna. Pemakaian 6 bulan, rutin dibersihkan/descaling. Kelengkapan portafilter lengkap."
+            },
+            {
+                id: 5,
+                title: "Helm Full Face KYT R10 Solid Black Doff",
+                price: 450000,
+                category: "Kendaraan",
+                image: "https://images.unsplash.com/photo-1588698779644-0a8112d76f82?auto=format&fit=crop&w=800&q=80",
+                seller: "Fajar Motor",
+                location: "Depok",
+                status: "Tersedia",
+                desc: "Size L. Visor bening sudah pasang anti-fog pinlock. Busa masih padat dan wangi karena rajin dicuci. Hanya ada baret halus penyimpanan di bagasi."
+            },
+            {
+                id: 6,
+                title: "Mechanical Keyboard Keychron K2 V2 Wireless",
+                price: 850000,
+                category: "Elektronik",
+                image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80",
+                seller: "Kevin Tech",
+                location: "Tangerang",
+                status: "Tersedia",
+                desc: "Switch Gateron Brown Hot-swappable. RGB backlight terang. B Connecting Bluetooth dan kabel aman sentosa. Keycaps bersih tanpa kilap."
+            }
+        ];
+
+        // Data Dummy Permintaan Barang (Wishlist)
+        let requests = [
+            {
+                id: 1,
+                title: "Mencari Fujifilm X-T20 Body Only Budget 4 Juta",
+                budget: 4000000,
+                author: "Siska Melati",
+                desc: "Lagi butuh mirrorless fujifilm buat hobi street photography. Diutamakan warna silver dan fungsi normal jaya."
+            },
+            {
+                id: 2,
+                title: "Dicari Sepeda Lipat Element / Noris Bekas Mulus",
+                budget: 2500000,
+                author: "Bambang W.",
+                desc: "Mencari sepedah lipat untuk gowes santai weekend di sekitar komplek. Lokasi Jabodetabek."
+            },
+            {
+                id: 3,
+                title: "Permintaan Novel Serial Harry Potter Hardcover Terjemahan",
+                budget: 500000,
+                author: "Dewi Lestari",
+                desc: "Mencari koleksi lengkap atau separuh seri Harry Potter edisi hardcover terbitan Gramedia."
+            }
+        ];
+
+        // Simulasi Database Chat / Nego
+        // Format: { productId_sellerName: [ { sender: 'buyer'/'seller', text: '...' } ] }
+        let chatHistories = {};
+
+        let currentActiveTab = 'marketplace';
+        let currentCategoryFilter = 'Semua';
+        let currentSearchQuery = '';
+        let selectedProduct = null;
+        let activeChatProduct = null;
+
+        // Inisialisasi Saat Load
+        window.onload = function() {
+            renderProducts();
+            renderRequests();
+        };
+
+        // Fungsi Tab Switching
+        function switchTab(tab) {
+            currentActiveTab = tab;
+            const btnMarketplace = document.getElementById('tabMarketplace');
+            const btnRequests = document.getElementById('tabRequests');
+            const secMarketplace = document.getElementById('sectionMarketplace');
+            const secRequests = document.getElementById('sectionRequests');
+
+            if (tab === 'marketplace') {
+                btnMarketplace.className = "py-3 border-b-2 border-brand-600 text-brand-600 font-semibold text-sm flex items-center gap-2 transition-all";
+                btnRequests.className = "py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 transition-all";
+                secMarketplace.classList.remove('hidden');
+                secRequests.classList.add('hidden');
+            } else {
+                btnRequests.className = "py-3 border-b-2 border-brand-600 text-brand-600 font-semibold text-sm flex items-center gap-2 transition-all";
+                btnMarketplace.className = "py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 transition-all";
+                secRequests.classList.remove('hidden');
+                secMarketplace.classList.add('hidden');
+            }
+        }
+
+        // Format Mata Uang Rupiah
+        function formatRupiah(amount) {
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        // Render Produk ke Grid
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            const emptyState = document.getElementById('emptyProductState');
+            grid.innerHTML = '';
+
+            let filtered = products.filter(p => {
+                let matchCat = currentCategoryFilter === 'Semua' || p.category === currentCategoryFilter;
+                let matchSearch = p.title.toLowerCase().includes(currentSearchQuery.toLowerCase()) || 
+                                  p.seller.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
+                                  p.location.toLowerCase().includes(currentSearchQuery.toLowerCase());
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(p => {
+                const isSold = p.status === 'Sold Out';
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer ${isSold ? 'opacity-75' : ''}`;
+                card.onclick = () => openProductModal(p.id);
+
+                card.innerHTML = `
+                    <div class="relative overflow-hidden aspect-square bg-slate-100">
+                        <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Preloved'">
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm ${isSold ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'}">
+                                ${p.status}
+                            </span>
+                        </div>
+                        <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white px-2 py-0.5 rounded text-[10px] font-medium">
+                            <i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${p.location}
+                        </div>
+                    </div>
+                    <div class="p-4 flex flex-col flex-1 justify-between gap-3">
+                        <div>
+                            <span class="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">${p.category}</span>
+                            <h3 class="text-sm font-semibold text-slate-800 mt-1 line-clamp-2 group-hover:text-brand-600 transition-colors">${p.title}</h3>
+                        </div>
+                        <div>
+                            <div class="text-base font-black text-slate-900">${formatRupiah(p.price)}</div>
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-400">
+                                <span class="truncate"><i class="fa-regular fa-user mr-1"></i>${p.seller}</span>
+                                <span class="text-brand-600 font-semibold group-hover:underline">Detail &rarr;</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Permintaan Barang
+        function renderRequests() {
+            const grid = document.getElementById('requestGrid');
+            const emptyState = document.getElementById('emptyRequestState');
+            grid.innerHTML = '';
+
+            if (requests.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            requests.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between gap-4 hover:border-brand-300 transition-all';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="px-2.5 py-0.5 rounded bg-indigo-50 text-brand-700 text-xs font-semibold"><i class="fa-solid fa-bullhorn mr-1"></i> Wishlist Pembeli</span>
+                            <span class="text-xs text-slate-400"><i class="fa-regular fa-user mr-1"></i>${r.author}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base">${r.title}</h3>
+                        <p class="text-sm text-slate-600 mt-2 leading-relaxed">${r.desc}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Estimasi Budget</span>
+                            <span class="text-sm font-black text-emerald-600">${formatRupiah(r.budget)}</span>
+                        </div>
+                        <button onclick="openChatForRequest('${r.author}', '${r.title}')" class="bg-brand-50 hover:bg-brand-100 text-brand-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-comment-medical"></i> Tawarkan Barang
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter Kategori Action
+        function filterCategory(cat) {
+            currentCategoryFilter = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.getAttribute('data-category') === cat) {
+                    btn.className = "category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-brand-600 text-white shadow-sm";
+                } else {
+                    btn.className = "category-btn px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100";
+                }
+            });
+            renderProducts();
+        }
+
+        // Pencarian Real-time
+        function handleSearch() {
+            const val = document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value;
+            currentSearchQuery = val;
+            renderProducts();
+        }
+
+        // Buka Modal Detail Produk
+        function openProductModal(id) {
+            selectedProduct = products.find(p => p.id === id);
+            if (!selectedProduct) return;
+
+            document.getElementById('modalImg').src = selectedProduct.image;
+            document.getElementById('modalCategory').innerText = selectedProduct.category;
+            document.getElementById('modalTitle').innerText = selectedProduct.title;
+            document.getElementById('modalPrice').innerText = formatRupiah(selectedProduct.price);
+            document.getElementById('modalSellerName').innerText = selectedProduct.seller;
+            document.getElementById('modalSellerAvatar').innerText = selectedProduct.seller.charAt(0);
+            document.getElementById('modalLocation').innerText = selectedProduct.location;
+            document.getElementById('modalDesc').innerText = selectedProduct.desc;
+
+            updateModalStatusUI();
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+            selectedProduct = null;
+        }
+
+        // Update Tampilan Status di Modal
+        function updateModalStatusUI() {
+            const badge = document.getElementById('modalStatusBadge');
+            const toggleBtn = document.getElementById('modalToggleStatusBtn');
+            const isSold = selectedProduct.status === 'Sold Out';
+
+            if (isSold) {
+                badge.className = "absolute bottom-4 left-4 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md bg-rose-500";
+                badge.innerText = "Terjual (Sold Out)";
+
+                toggleBtn.className = "w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Ubah jadi Tersedia';
+            } else {
+                badge.className = "absolute bottom-4 left-4 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md bg-emerald-500";
+                badge.innerText = "Tersedia";
+
+                toggleBtn.className = "w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all shadow-xs bg-rose-600 hover:bg-rose-700 text-white";
+                toggleBtn.innerHTML = '<i class="fa-solid fa-ban mr-1"></i> Tandai Sold Out';
+            }
+        }
+
+        // Toggle Status Produk Real-time (Fitur Utama)
+        function toggleProductStatus() {
+            if (!selectedProduct) return;
+            if (selectedProduct.status === 'Tersedia') {
+                selectedProduct.status = 'Sold Out';
+                showToast('Barang berhasil ditandai sebagai Sold Out!');
+            } else {
+                selectedProduct.status = 'Tersedia';
+                showToast('Barang kembali berstatus Tersedia!');
+            }
+            updateModalStatusUI();
+            renderProducts(); // Update grid utama secara real-time
+        }
+
+        // Buka Modal Tambah Produk
+        function openAddProductModal() {
+            document.getElementById('addProductModal').classList.remove('hidden');
+        }
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+            document.getElementById('addProductForm').reset();
+        }
+
+        // Submit Produk Baru
+        function submitNewProduct(e) {
+            e.preventDefault();
+            const newP = {
+                id: Date.now(),
+                title: document.getElementById('newTitle').value,
+                price: Number(document.getElementById('newPrice').value),
+                category: document.getElementById('newCategory').value,
+                image: document.getElementById('newImage').value,
+                seller: document.getElementById('newSeller').value,
+                location: document.getElementById('newLocation').value,
+                status: "Tersedia",
+                desc: document.getElementById('newDesc').value
+            };
+
+            products.unshift(newP);
+            renderProducts();
+            closeAddProductModal();
+            showToast('Produk preloved baru berhasil dipasang!');
+        }
+
+        // Buka Modal Tambah Permintaan Barang
+        function openAddRequestModal() {
+            document.getElementById('addRequestModal').classList.remove('hidden');
+        }
+        function closeAddRequestModal() {
+            document.getElementById('addRequestModal').classList.add('hidden');
+            document.getElementById('addRequestForm').reset();
+        }
+
+        // Submit Permintaan Baru
+        function submitNewRequest(e) {
+            e.preventDefault();
+            const newR = {
+                id: Date.now(),
+                title: document.getElementById('reqTitle').value,
+                budget: Number(document.getElementById('reqBudget').value),
+                author: document.getElementById('reqAuthor').value,
+                desc: document.getElementById('reqDesc').value
+            };
+
+            requests.unshift(newR);
+            renderRequests();
+            closeAddRequestModal();
+            showToast('Permintaan barang berhasil dipublikasikan!');
+        }
+
+        // ================= FITUR CHAT & NEGO INTERAKTIF =================
+        function openChatFromModal() {
+            if (!selectedProduct) return;
+            closeProductModal();
+            initChat(selectedProduct.seller, selectedProduct.title);
+        }
+
+        function openChatForRequest(authorName, reqTitle) {
+            initChat(authorName, "Wishlist: " + reqTitle);
+        }
+
+        function initChat(sellerName, productContext) {
+            activeChatProduct = { seller: sellerName, context: productContext };
+            const chatKey = sellerName.replace(/\s+/g, '_');
+
+            if (!chatHistories[chatKey]) {
+                chatHistories[chatKey] = [
+                    { sender: 'seller', text: `Halo! Terima kasih sudah tertarik dengan "${productContext}". Ada yang ingin ditanyakan atau mau nego harga?` }
+                ];
+            }
+
+            document.getElementById('chatHeaderName').innerText = sellerName;
+            document.getElementById('chatHeaderAvatar').innerText = sellerName.charAt(0);
+            document.getElementById('chatHeaderProduct').innerText = productContext;
+
+            renderChatMessages(chatKey);
+            document.getElementById('chatModal').classList.remove('hidden');
+            document.getElementById('chatBadge').classList.remove('hidden');
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').classList.add('hidden');
+            activeChatProduct = null;
+        }
+
+        function openChatListModal() {
+            // Buka chat aktif pertama jika ada, atau buka sampel chat dengan penjual pertama
+            if (products.length > 0) {
+                initChat(products[0].seller, products[0].title);
+            }
+        }
+
+        function renderChatMessages(chatKey) {
+            const container = document.getElementById('chatMessageContainer');
+            container.innerHTML = '';
+
+            const messages = chatHistories[chatKey] || [];
+            messages.forEach(msg => {
+                const isMe = msg.sender === 'buyer';
+                const bubble = document.createElement('div');
+                bubble.className = `flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`;
+                bubble.innerHTML = `
+                    <div class="max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-brand-600 text-white rounded-br-xs shadow-xs' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs shadow-xs'}">
+                        <p>${msg.text}</p>
+                    </div>
+                `;
+                container.appendChild(bubble);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendChatMessage(e) {
+            e.preventDefault();
+            if (!activeChatProduct) return;
+
+            const input = document.getElementById('chatInputText');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatKey = activeChatProduct.seller.replace(/\s+/g, '_');
+            if (!chatHistories[chatKey]) chatHistories[chatKey] = [];
+
+            // Tambah pesan pembeli
+            chatHistories[chatKey].push({ sender: 'buyer', text: text });
+            input.value = '';
+            renderChatMessages(chatKey);
+
+            // Simulasi balasan otomatis penjual setelah 1 detik
+            setTimeout(() => {
+                let autoReply = "Baik, saya catat penawarannya ya gan. Boleh silakan lanjut diskusi.";
+                const lower = text.toLowerCase();
+                if (lower.includes('nego') || lower.includes('kurang') || lower.includes('juta') || lower.includes('rb')) {
+                    autoReply = "Wah boleh nego tipis gan, tapi jangan sadis ya hehe. Gimana kalau kita deal di tengah?";
+                } else if (lower.includes('lokasi') || lower.includes('cod')) {
+                    autoReply = "Bisa COD sekitar area terdekat atau kirim-kirim via ekspedisi aman amanah.";
+                }
+
+                chatHistories[chatKey].push({ sender: 'seller', text: autoReply });
+                renderChatMessages(chatKey);
+            }, 1000);
+        }
+
+        // Toast Notification Helper
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.innerText = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
